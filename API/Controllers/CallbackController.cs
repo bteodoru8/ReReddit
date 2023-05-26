@@ -14,15 +14,23 @@ public class CallbackController : Controller {
 
    private readonly RedditOAuthService _oauthService;
 
+   /// <summary>
+   /// Initializes a new instance of the CallbackController class.
+   /// </summary>
+   /// <param name="oAuthService">The RedditOAuthService instance for handling OAuth operations.</param>
    public CallbackController(RedditOAuthService oAuthService) {
       _oauthService = oAuthService;
    }
 
+   /// <summary>
+   /// Redirects to the authorization URL for initiating the OAuth flow.
+   /// </summary>
+   /// <returns>An HTTP redirect response to the authorization URL.</returns>
    [HttpGet]
    public IActionResult RedirectToAuthorizationUrl() {
       string state = "RANDOM_STRING";
       string duration = "temporary";
-      string scope = "identity privatemessages";
+      string scope = "privatemessages mysubreddits read";
 
       string authorizationUrl = _oauthService.GetAuthorizationLink(state, duration, scope);
       Console.WriteLine(authorizationUrl);
@@ -30,6 +38,12 @@ public class CallbackController : Controller {
       return Redirect(authorizationUrl);
    }
 
+   /// <summary>
+   /// Handles the callback from the authorization server after the user authorizes the app.
+   /// </summary>
+   /// <param name="code">The authorization code received from the authorization server.</param>
+   /// <param name="state">The state parameter received from the authorization server.</param>
+   /// <returns>An asynchronous task that represents the action result.</returns>
    [HttpGet("redirect")]
    public async Task<IActionResult> HandleCallback(string code, string state) {
       try {
@@ -39,9 +53,6 @@ public class CallbackController : Controller {
 
          Console.WriteLine(accessToken);
          HttpContext.Session.SetString("AccessToken", accessToken);
-         return Ok(accessToken);
-         // Process the access token as needed (e.g., store it in a session, authenticate the user, etc.)
-         // Redirect to a success page or perform other actions
          return View("Success");
       } catch (Exception ex) {
          // Handle the error gracefully
